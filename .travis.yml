@@ -2,6 +2,7 @@ sudo: required
 dist: trusty
 install:
   - sudo pip install -r requirements.txt
+  - mv config.example.py config.py
 
 script:
   sudo python -m doctest main.py
