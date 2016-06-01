@@ -50,17 +50,17 @@ def load_ical(url):
   resp, content = httplib2.Http().request(url)
   assert(resp['status'] == '200')
 
-  events = []
+  events = {}
 
   for event in re.findall("BEGIN:VEVENT.*?END:VEVENT", content, re.M|re.I|re.DOTALL):
     start = re.search("dtstart;TZID=(.*?):(.*)", event, re.I)
     end = re.search("dtend;TZID=(.*?):(.*)", event, re.I)
     summary = re.search("summary:(.*)", event, re.I).group(1)
 
-    hash = hashlib.sha256("%s %s %s" % (start.group(2),end.group(2),summary)).hexdigest()
+    hash = hashlib.sha256("%s%s%s" % (start.group(2),end.group(2),summary)).hexdigest()
 
     if parse(start.group(2).replace('Z','')) >= parse(config.start_date):
-      events.append({
+      events[hash] = {
         'summary': summary,
         'start': {
           'dateTime': str(parse(start.group(2).replace('Z',''))).replace(' ','T'),
@@ -71,30 +71,32 @@ def load_ical(url):
           'timeZone': end.group(1),
         },
         'id': hash
-      })
+      }
 
   return events
 
-def handle_existing_events(service, events):
+def handle_existing_events(service, new_events):
   """ Examines existing gCal events and prunes as needed """
 
   if config.erase_all:
     print("Clearing calendar...")
     service.calendars().clear(calendarId=config.gcal_id).execute()
-  elif config.remove_stale:
-    for event in service.events().list(calendarId=config.gcal_id, maxResults=2500).execute()['items']:
-      if event['id'] not in [e['id'] for e in events]:
-        print("Deleting stale event %s..." % (event['id'][0:8]))
-        service.events().delete(calendarId=config.gcal_id, eventId=event['id']).execute()
+
+  for event in service.events().list(calendarId=config.gcal_id, maxResults=2500).execute()['items']:
+    if event['id'] in new_events:
+      del new_events[event['id']]
+    elif config.remove_stale:
+      print("Deleting stale event %s..." % (event['id'][0:8]))
+      service.events().delete(calendarId=config.gcal_id, eventId=event['id']).execute()
 
 def add_ical_to_gcal(service, events):
   """ Adds all events in event list to gCal """
 
   for i, event in enumerate(events):
-    print("Adding %d/%d %s" % (i+1,len(events),event['summary']))
+    print("Adding %d/%d %s" % (i+1,len(events),events[event]['summary']))
     sleep(.3)
     try:
-      service.events().insert(calendarId=config.gcal_id, body=event).execute()
+      service.events().insert(calendarId=config.gcal_id, body=events[event]).execute()
     except errors.HttpError, e:
       if e.resp.status == 409:
         print("Event already exists")
@@ -102,7 +104,7 @@ def add_ical_to_gcal(service, events):
         raise e
 
 if __name__ == '__main__':
-  events = load_ical(config.ical_url)
+  new_events = load_ical(config.ical_url)
   service = get_calendar_service()
-  handle_existing_events(service, events)
-  add_ical_to_gcal(service, events)
+  handle_existing_events(service, new_events)
+  add_ical_to_gcal(service, new_events)
