@@ -1,5 +1,5 @@
 install:
-  - pip install -r requirements.txt
+  - pip install httplib2
 
 script:
   python -m doctest main.py
