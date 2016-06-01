@@ -15,6 +15,8 @@ from oauth2client import tools
 import config
 
 def get_credentials():
+  """ Gets credentials to access gCal API """
+
   store = oauth2client.file.Storage(config.credential_store)
   credentials = store.get()
   if not credentials or credentials.invalid:
@@ -25,6 +27,8 @@ def get_credentials():
   return credentials
 
 def get_calendar_service():
+  """ Gets a service object to use to query gCal API """
+
   credentials = get_credentials()
   http = credentials.authorize(httplib2.Http())
   return discovery.build('calendar', 'v3', http=http)
@@ -72,6 +76,8 @@ def load_ical(url):
   return events
 
 def handle_existing_events(service, events):
+  """ Examines existing gCal events and prunes as needed """
+
   if config.erase_all:
     print("Clearing calendar...")
     service.calendars().clear(calendarId=config.gcal_id).execute()
@@ -82,6 +88,8 @@ def handle_existing_events(service, events):
         service.events().delete(calendarId=config.gcal_id, eventId=event['id']).execute()
 
 def add_ical_to_gcal(service, events):
+  """ Adds all events in event list to gCal """
+
   for i, event in enumerate(events):
     print("Adding %d/%d %s" % (i+1,len(events),event['summary']))
     sleep(.3)
