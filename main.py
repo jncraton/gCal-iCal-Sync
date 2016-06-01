@@ -26,6 +26,11 @@ def get_credentials():
     print('Storing credentials to ' + credential_path)
   return credentials
 
+def get_calendar_service():
+  credentials = get_credentials()
+  http = credentials.authorize(httplib2.Http())
+  return discovery.build('calendar', 'v3', http=http)
+
 def load_ical(url):
   resp, content = httplib2.Http().request(url)
   assert(resp['status'] == '200')
@@ -55,15 +60,7 @@ def load_ical(url):
 
   return events
 
-def main():
-  events = load_ical(config.ical_url)
-
-  credentials = get_credentials()
-  http = credentials.authorize(httplib2.Http())
-  service = discovery.build('calendar', 'v3', http=http)
-
-  assert(service.calendarList().get(calendarId='primary').execute()['id'] == config.gcal_id)
-
+def handle_existing_events(service, events):
   if config.erase_all:
     print("Clearing calendar...")
     service.calendars().clear(calendarId=config.gcal_id).execute()
@@ -73,6 +70,7 @@ def main():
         print("Deleting stale event %s..." % (event['id'][0:8]))
         service.events().delete(calendarId=config.gcal_id, eventId=event['id']).execute()
 
+def add_ical_to_gcal(service, events):
   for i, event in enumerate(events):
     print("Adding %d/%d %s" % (i+1,len(events),event['summary']))
     sleep(.3)
@@ -83,6 +81,9 @@ def main():
         print("Event already exists")
       else:
         raise e
-      
+
 if __name__ == '__main__':
-  main()
+  events = load_ical(config.ical_url)
+  service = get_calendar_service()
+  handle_existing_events(service, events)
+  add_ical_to_gcal(service, events)
