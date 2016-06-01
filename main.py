@@ -26,12 +26,11 @@ def get_credentials():
     print('Storing credentials to ' + credential_path)
   return credentials
 
-def main():
-  resp, content = httplib2.Http().request(config.ical_url)
+def load_ical(url):
+  resp, content = httplib2.Http().request(url)
   assert(resp['status'] == '200')
 
   events = []
-  ids = []
 
   for event in re.findall("BEGIN:VEVENT.*?END:VEVENT", content, re.M|re.I|re.DOTALL):
     start = re.search("dtstart;TZID=(.*?):(.*)", event, re.I)
@@ -53,7 +52,11 @@ def main():
         },
         'id': hash
       })
-      ids.append(hash)
+
+  return events
+
+def main():
+  events = load_ical(config.ical_url)
 
   credentials = get_credentials()
   http = credentials.authorize(httplib2.Http())
@@ -66,7 +69,7 @@ def main():
     service.calendars().clear(calendarId=config.gcal_id).execute()
   elif config.remove_stale:
     for event in service.events().list(calendarId=config.gcal_id, maxResults=2500).execute()['items']:
-      if event['id'] not in ids:
+      if event['id'] not in [e['id'] for e in events]:
         print("Deleting stale event %s..." % (event['id'][0:8]))
         service.events().delete(calendarId=config.gcal_id, eventId=event['id']).execute()
 
