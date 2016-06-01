@@ -1,5 +1,7 @@
+sudo: required
+dist: trusty
 install:
-  - pip install httplib2
+  - sudo pip install -r requirements.txt
 
 script:
   python -m doctest main.py
