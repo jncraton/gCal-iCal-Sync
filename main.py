@@ -2,9 +2,7 @@
 
 from __future__ import print_function
 import httplib2
-import os
 from dateutil.parser import parse
-import datetime
 import re
 import hashlib
 from time import sleep
