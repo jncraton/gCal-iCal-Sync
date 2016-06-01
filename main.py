@@ -99,7 +99,9 @@ def add_ical_to_gcal(service, events):
       service.events().insert(calendarId=config.gcal_id, body=events[event]).execute()
     except errors.HttpError, e:
       if e.resp.status == 409:
-        print("Event already exists")
+        print("Event already exists. Updating...")
+        service.events().update(calendarId=config.gcal_id, eventId=event, body=events[event]).execute()
+        print("Event updated.")
       else:
         raise e
 
