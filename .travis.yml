@@ -4,4 +4,4 @@ install:
   - sudo pip install -r requirements.txt
 
 script:
-  python -m doctest main.py
+  sudo python -m doctest main.py
