@@ -31,6 +31,7 @@ def main():
     assert(resp['status'] == '200')
 
     events = []
+    ids = []
 
     for event in re.findall("BEGIN:VEVENT.*?END:VEVENT", content, re.M|re.I|re.DOTALL):
         start = re.search("dtstart;TZID=(.*?):(.*)", event, re.I)
@@ -52,6 +53,7 @@ def main():
               },
               'id': hash
           })
+          ids.append(hash)
 
     credentials = get_credentials()
     http = credentials.authorize(httplib2.Http())
@@ -62,6 +64,11 @@ def main():
     if config.erase_all:
       print("Clearing calendar...")
       service.calendars().clear(calendarId=config.gcal_id).execute()
+    elif config.remove_stale:
+      for event in service.events().list(calendarId=config.gcal_id, maxResults=2500).execute()['items']:
+        if event['id'] not in ids:
+          print("Deleting stale event %s..." % (event['id'][0:8]))
+          service.events().delete(calendarId=config.gcal_id, eventId=event['id']).execute()
 
     for i, event in enumerate(events):
       print("Adding %d/%d %s" % (i+1,len(events),event['summary']))

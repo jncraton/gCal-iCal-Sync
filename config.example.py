@@ -20,3 +20,6 @@ start_date = '2016-01-01'
 
 # Set to true to erase all events on calendar before importing
 erase_all = False
+
+# Set to true to remove any events not found in import
+remove_stale = False
