@@ -13,8 +13,10 @@ credential_store = 'logins.json'
 ical_url = 'http://example.com/cal.ics'
 
 # Google Calendar ID to write calendar to
-# All events on this calendar will be erased
 gcal_id = 'mygooglecalendar@gmail.com'
 
 # Only events after this date will be added
 start_date = '2016-01-01'
+
+# Set to true to erase all events on calendar before importing
+erase_all = False

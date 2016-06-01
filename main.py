@@ -6,8 +6,10 @@ import os
 from dateutil.parser import parse
 import datetime
 import re
+import hashlib
+from time import sleep
 
-from apiclient import discovery
+from apiclient import discovery, errors
 import oauth2client
 from oauth2client import client
 from oauth2client import tools
@@ -35,6 +37,8 @@ def main():
         end = re.search("dtend;TZID=(.*?):(.*)", event, re.I)
         summary = re.search("summary:(.*)", event, re.I).group(1)
 
+        hash = hashlib.sha256("%s %s %s" % (start.group(2),end.group(2),summary)).hexdigest()
+
         if parse(start.group(2).replace('Z','')) >= parse(config.start_date):
           events.append({
               'summary': summary,
@@ -46,6 +50,7 @@ def main():
                   'dateTime': str(parse(end.group(2).replace('Z',''))).replace(' ','T'),
                   'timeZone': end.group(1),
               },
+              'id': hash
           })
 
     credentials = get_credentials()
@@ -54,12 +59,20 @@ def main():
 
     assert(service.calendarList().get(calendarId='primary').execute()['id'] == config.gcal_id)
 
-    print("Clearing calendar...")
-    service.calendars().clear(calendarId=config.gcal_id).execute()
+    if config.erase_all:
+      print("Clearing calendar...")
+      service.calendars().clear(calendarId=config.gcal_id).execute()
 
     for i, event in enumerate(events):
       print("Adding %d/%d %s" % (i+1,len(events),event['summary']))
-      service.events().insert(calendarId=config.gcal_id, body=event).execute()
-
+      sleep(.3)
+      try:
+        service.events().insert(calendarId=config.gcal_id, body=event).execute()
+      except errors.HttpError, e:
+        if e.resp.status == 409:
+          print("Event already exists")
+        else:
+          raise e
+        
 if __name__ == '__main__':
     main()
