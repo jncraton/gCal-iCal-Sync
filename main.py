@@ -34,16 +34,16 @@ def get_calendar_service():
   return discovery.build('calendar', 'v3', http=http)
 
 def load_ical(url):
-  """ Loads an iCal file from a URL and returns a list of events
+  """ Loads an iCal file from a URL and returns an events object
 
   >>> events = load_ical("http://www.houghton.edu/calendar-events/icsexport/")
   >>> len(events) > 50
   True
-  >>> 'summary' in events[0]
+  >>> 'summary' in events.itervalues().next()
   True
-  >>> 'start' in events[0]
+  >>> 'start' in events.itervalues().next()
   True
-  >>> 'end' in events[0]
+  >>> 'end' in events.itervalues().next()
   True
   """
 
