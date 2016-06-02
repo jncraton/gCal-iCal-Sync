@@ -6,7 +6,7 @@ Syncs a public iCal URL to a Google Calendar. On each run, this program will add
 
 # Installation
 
-Assuming that you have Python and pip install correctly, you should be able to install required dependencies using:
+Assuming that you already have Python and pip installed correctly, you should be able to install required dependencies using:
 
     pip install -r requirements.txt
 
