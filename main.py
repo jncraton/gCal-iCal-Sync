@@ -23,7 +23,7 @@ def get_credentials():
     flow = client.flow_from_clientsecrets(config.client_secret, 'https://www.googleapis.com/auth/calendar')
     flow.user_agent = config.application
     credentials = tools.run_flow(flow, store)
-    print('Storing credentials to ' + credential_path)
+    print('Storing credentials to ' + config.credential_store)
   return credentials
 
 def get_calendar_service():
