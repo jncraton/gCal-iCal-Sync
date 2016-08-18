@@ -22,7 +22,9 @@ def get_credentials():
   if not credentials or credentials.invalid:
     flow = client.flow_from_clientsecrets(config.client_secret, 'https://www.googleapis.com/auth/calendar')
     flow.user_agent = config.application
-    credentials = tools.run_flow(flow, store)
+    parser = argparse.ArgumentParser(parents=[tools.argparser])
+    flags = parser.parse_args()
+    credentials = tools.run_flow(flow, store, flags)
     print('Storing credentials to ' + config.credential_store)
   return credentials
 
