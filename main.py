@@ -38,7 +38,7 @@ def get_calendar_service():
 def load_ical(url):
   """ Loads an iCal file from a URL and returns an events object
 
-  >>> events = load_ical("http://www.houghton.edu/calendar-events/icsexport/")
+  >>> events = load_ical("https://www.houghton.edu/events/?ical=1&tribe_display=month")
   >>> len(events) > 50
   True
   >>> 'summary' in events.itervalues().next()
