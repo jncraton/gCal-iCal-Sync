@@ -66,11 +66,11 @@ def load_ical(url):
         'summary': summary,
         'start': {
           'dateTime': str(parse(start.group(2).replace('Z',''))).replace(' ','T'),
-          'timeZone': start.group(1),
+          'timeZone': 'America/New_York',
         },
         'end': {
           'dateTime': str(parse(end.group(2).replace('Z',''))).replace(' ','T'),
-          'timeZone': end.group(1),
+          'timeZone': 'America/New_York',
         },
         'id': hash
       }
@@ -96,12 +96,13 @@ def add_ical_to_gcal(service, events):
 
   for i, event in enumerate(events):
     print("Adding %d/%d %s" % (i+1,len(events),events[event]['summary']))
-    sleep(.3)
     try:
+      sleep(.3)
       service.events().insert(calendarId=config.gcal_id, body=events[event]).execute()
     except errors.HttpError, e:
       if e.resp.status == 409:
         print("Event already exists. Updating...")
+        sleep(.3)
         service.events().update(calendarId=config.gcal_id, eventId=event, body=events[event]).execute()
         print("Event updated.")
       else:
