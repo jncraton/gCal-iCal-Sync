@@ -36,18 +36,7 @@ def get_calendar_service():
   return discovery.build('calendar', 'v3', http=http)
 
 def load_ical(url):
-  """ Loads an iCal file from a URL and returns an events object
-
-  >>> events = load_ical("https://www.houghton.edu/events/?ical=1&tribe_display=month")
-  >>> len(events) > 50
-  True
-  >>> 'summary' in events.itervalues().next()
-  True
-  >>> 'start' in events.itervalues().next()
-  True
-  >>> 'end' in events.itervalues().next()
-  True
-  """
+  """ Loads an iCal file from a URL and returns an events object """
 
   resp, content = httplib2.Http().request(url)
   assert(resp['status'] == '200')
